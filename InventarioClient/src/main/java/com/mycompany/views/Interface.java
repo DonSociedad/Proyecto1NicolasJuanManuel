@@ -4,6 +4,8 @@
  */
 package com.mycompany.views;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -14,6 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 /**
  *
@@ -24,6 +28,72 @@ public class Interface extends javax.swing.JFrame {
     public Interface() {
         initComponents();
         actualizarListaProductos();
+        configurarEventos();
+    }
+    
+    private void configurarEventos() {
+        BTN_Agregar.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                enviarSolicitud(1);
+            }
+        });
+
+        BTN_Eliminar.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                enviarSolicitud(2);
+            }
+        });
+
+        BTN_Buscar.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                enviarSolicitud(4);
+            }
+        });
+
+        BTN_Actualizar.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                enviarSolicitud(3);
+            }
+        });
+
+        BTN_Reporte.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                generarReporte();
+            }
+        });
+
+        BTN_Limpiar.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                limpiarCampos();
+            }
+        });
+        ListaProductos.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (!e.getValueIsAdjusting() && ListaProductos.getSelectedValue() != null) { // Evita llamadas innecesarias
+                    String seleccionado = ListaProductos.getSelectedValue();
+
+                    // Se asume que el formato del producto es: "ID - Nombre - Precio - Cantidad"
+                    String[] datos = seleccionado.split(" - ");
+
+                    if (datos.length == 4) {
+                        TextField_ID.setText(datos[0].trim());        // ID
+                        TextField_Nombre.setText(datos[1].trim());    // Nombre
+                        TextField_Precio.setText(datos[2].trim());    // Precio
+                        TextField_Cantidad.setText(datos[3].trim());  // Cantidad
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Error al procesar el producto seleccionado.", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        });
+
     }
     
     @SuppressWarnings("unchecked")
@@ -53,7 +123,6 @@ public class Interface extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(255, 255, 255));
-        setPreferredSize(new java.awt.Dimension(1000, 600));
         setResizable(false);
 
         jPanel3.setForeground(new java.awt.Color(255, 255, 255));
@@ -74,63 +143,16 @@ public class Interface extends javax.swing.JFrame {
         jScrollPane1.setViewportView(ListaProductos);
 
         BTN_Agregar.setText("Agregar Producto");
-        BTN_Agregar.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                BTN_AgregarMouseClicked(evt);
-            }
-        });
 
         BTN_Eliminar.setText("Eliminar Producto");
-        BTN_Eliminar.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                BTN_EliminarMouseClicked(evt);
-            }
-        });
 
         BTN_Buscar.setText("Buscar Producto");
-        BTN_Buscar.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                BTN_BuscarMouseClicked(evt);
-            }
-        });
 
         BTN_Actualizar.setText("Actualizar Producto");
-        BTN_Actualizar.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                BTN_ActualizarMouseClicked(evt);
-            }
-        });
-        BTN_Actualizar.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                BTN_ActualizarActionPerformed(evt);
-            }
-        });
-
-        TextField_ID.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                TextField_IDActionPerformed(evt);
-            }
-        });
-
-        TextField_Cantidad.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                TextField_CantidadActionPerformed(evt);
-            }
-        });
 
         BTN_Reporte.setText("Reporte CSV");
-        BTN_Reporte.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                BTN_ReporteMouseClicked(evt);
-            }
-        });
 
         BTN_Limpiar.setText("Limpiar Campos");
-        BTN_Limpiar.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                BTN_LimpiarMouseClicked(evt);
-            }
-        });
 
         jLabel1.setText("ID:");
 
@@ -270,42 +292,6 @@ public class Interface extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void BTN_LimpiarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_BTN_LimpiarMouseClicked
-        limpiarCampos();
-    }//GEN-LAST:event_BTN_LimpiarMouseClicked
-
-    private void BTN_ReporteMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_BTN_ReporteMouseClicked
-        generarReporte();
-    }//GEN-LAST:event_BTN_ReporteMouseClicked
-
-    private void TextField_CantidadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_TextField_CantidadActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_TextField_CantidadActionPerformed
-
-    private void TextField_IDActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_TextField_IDActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_TextField_IDActionPerformed
-
-    private void BTN_ActualizarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BTN_ActualizarActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_BTN_ActualizarActionPerformed
-
-    private void BTN_ActualizarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_BTN_ActualizarMouseClicked
-        enviarSolicitud(3);
-    }//GEN-LAST:event_BTN_ActualizarMouseClicked
-
-    private void BTN_BuscarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_BTN_BuscarMouseClicked
-        enviarSolicitud(4);
-    }//GEN-LAST:event_BTN_BuscarMouseClicked
-
-    private void BTN_EliminarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_BTN_EliminarMouseClicked
-        enviarSolicitud(2);
-    }//GEN-LAST:event_BTN_EliminarMouseClicked
-
-    private void BTN_AgregarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_BTN_AgregarMouseClicked
-        enviarSolicitud(1);
-    }//GEN-LAST:event_BTN_AgregarMouseClicked
-
     private void ListaProductosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ListaProductosMouseClicked
         if (ListaProductos.getSelectedIndex() != -1) { // Verifica que se haya seleccionado un elemento
         String seleccionado = ListaProductos.getSelectedValue();
@@ -320,8 +306,8 @@ public class Interface extends javax.swing.JFrame {
             TextField_Cantidad.setText(datos[3].trim());  // Cantidad
         } else {
             JOptionPane.showMessageDialog(this, "Error al procesar el producto seleccionado.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
-    }
     }//GEN-LAST:event_ListaProductosMouseClicked
 
     private void enviarSolicitud(int opcion) {
