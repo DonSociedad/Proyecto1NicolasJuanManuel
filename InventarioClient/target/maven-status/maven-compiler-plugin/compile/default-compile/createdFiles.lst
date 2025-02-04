@@ -3,7 +3,6 @@ com\mycompany\views\Interface.class
 com\mycompany\inventario\Product.class
 com\mycompany\views\Interface$7.class
 com\mycompany\views\Interface$8.class
-com\mycompany\views\VentanaPrincipal.class
 com\mycompany\views\Interface$4.class
 com\mycompany\inventarioclient\InventarioClient.class
 com\mycompany\views\Interface$3.class

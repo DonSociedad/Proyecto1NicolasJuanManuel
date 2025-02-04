@@ -4,7 +4,6 @@
  */
 package com.mycompany.views;
 
-import java.awt.BorderLayout;
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -14,7 +13,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.DefaultListModel;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 /**
