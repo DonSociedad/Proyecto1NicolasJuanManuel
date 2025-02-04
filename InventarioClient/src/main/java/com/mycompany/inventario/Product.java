@@ -34,3 +34,4 @@ public class Product {
         return String.format("ID: %d, Nombre: %s, Precio: %.2f, Cantidad: %d", id, name, price, quantity);
     }
 }
+

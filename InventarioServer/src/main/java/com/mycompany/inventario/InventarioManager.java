@@ -1,73 +1,62 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.mycompany.inventario;
 
 import java.util.ArrayList;
+import java.util.List;
 
-/**
- *
- * @author Juan Manuel
- */
 public class InventarioManager {
-    ArrayList<Product> products=new ArrayList<>();
-    
-     public InventarioManager() {
-        this.products = new ArrayList<>();
-        initializeInventory();
+    private List<Product> products;
+
+    public InventarioManager() {
+        products = new ArrayList<>();
+        // Productos iniciales
+        products.add(new Product(1, "Manzana", 0.5, 100));
+        products.add(new Product(2, "Pera", 0.7, 150));
+        products.add(new Product(3, "Banana", 0.3, 200));
+        products.add(new Product(4, "Mango", 1.2, 50));
     }
-    
-    /**
-     * Initializes the inventory with predefined products.
-     */
-    public void initializeInventory() {
-        products.add(new Product(1, "Laptop", 1200.00, 10));
-        products.add(new Product(2, "Smartphone", 800.00, 15));
-        products.add(new Product(3, "Headphones", 200.00, 20));
-        products.add(new Product(4, "Keyboard", 100.00, 25));
+
+    public List<Product> getProducts() {
+        return products;
     }
-    
-    public void removeProducts(int id){
+
+    public boolean productExists(int id) {
+        return products.stream().anyMatch(product -> product.getId() == id);
+    }
+
+    public void addProduct(Product product) {
+        products.add(product);
+    }
+
+    public void removeProducts(int id) {
         products.removeIf(product -> product.getId() == id);
     }
-    
+
     public void updateProduct(int id, Product newProduct) {
         for (int i = 0; i < products.size(); i++) {
             if (products.get(i).getId() == id) {
                 products.set(i, newProduct);
-                return;
+                break;
             }
         }
     }
-    
+
     public String searchProduct(String name) {
-        for (Product product : products) {
-            if (product.getName().equalsIgnoreCase(name)) {
-                return product.toString();
-            }
-        }
-        return "not found";
+        return products.stream()
+                .filter(product -> product.getName().equalsIgnoreCase(name))
+                .map(Product::toString)
+                .findFirst()
+                .orElse("Producto no encontrado.");
     }
-    
-    /**
-     * Muestra los productos en el inventario
-     */
-    public void displayProducts() {
-        System.out.println("Current Inventory:");
-        for (Product product : products) {
-            System.out.println(product);
-        }
-    }
-    
+
     public String generateReport() {
-        StringBuilder report = new StringBuilder("Inventory Report:\n");
+        StringBuilder report = new StringBuilder("ID, Nombre, Precio, Cantidad\n");
         for (Product product : products) {
-            report.append(product.toString()).append("\n");
+            report.append(product.getId()).append(", ")
+                    .append(product.getName()).append(", ")
+                    .append(product.getPrice()).append(", ")
+                    .append(product.getQuantity()).append("\n");
         }
         return report.toString();
     }
-
-    
-    
 }
+

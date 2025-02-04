@@ -1,9 +1,7 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- */
 package com.mycompany.inventarioserver;
 
 import com.mycompany.inventario.InventarioManager;
+import com.mycompany.inventario.Product;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -12,139 +10,78 @@ import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- *
- * @author Juan Manuel
- */
 public class InventarioServer {
 
     public static void main(String[] args) {
-        /**
-        * creacion de objeto InventarioManager
-        */
         InventarioManager manager = new InventarioManager();
-        /**
-        * variable para definir la operacion a realizar
-        */
-        int option = 0;
-
-        /**
-         * se crea el socket para el servidor
-         */
-        ServerSocket servidor;
-        /**
-         * socket del cliente junto a input y output
-         */
-        Socket sc = null;
-        DataInputStream in;
-        DataOutputStream out;
-        /**
-         * menu temporal para probar las funcionalidades del manager
-         */
-        Menu menu = new Menu();
-        /**
-         * puerto en el que se va a trabajar
-         */
         int puerto = 5051;
-        /**
-         * try-catch para las excepciones de socket
-         */
-        try {
-            /**
-             * se inicializa el servidor
-             */
-            servidor = new ServerSocket(puerto);
-            System.out.println("Servidor Iniciado en el puerto " + puerto);
-            /**
-             * ciclo infinito para mantener al servidor siempre al pendiente de
-             * cualquier solicitud
-             */
+
+        try (ServerSocket servidor = new ServerSocket(puerto)) {
+            System.out.println("Servidor TCP iniciado en el puerto " + puerto);
+
             while (true) {
-                /**
-                 * el servidor espera una conexion con un cliente
-                 */
-                sc = servidor.accept();
-                System.out.println("Cliente encontrado");
-                /**
-                 * se inicializa in para recibir informacion
-                 */
-                in = new DataInputStream(sc.getInputStream());
-                /**
-                 * se inicializa el out para enviar informacion
-                 */
-                out = new DataOutputStream(sc.getOutputStream());
-                /**
-                * ciclo que mantendra el menu activo hasta que el cliente lo desee
-                */
-                while (option != 5) {
-                    /**
-                    * se muestran las opciones del menu
-                    */
-                    out.writeUTF(menu.showMenu());
-                    /**
-                    * recibe la opcion elegida por el cliente
-                    */
-                    option = in.readInt();
-                    System.out.println("se recibio un "+option);
+                System.out.println("Esperando conexión de cliente...");
+                try (Socket socket = servidor.accept();
+                     DataInputStream in = new DataInputStream(socket.getInputStream());
+                     DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
 
-                    switch (option) {
-                        case 1:
-                            /**
-                            * si se realiza la operacion 1 se llama a la funcion para mostrar el inventario
-                            */
-                            manager.displayProducts();
-                            /**
-                            * mensaje de confirmacion de la opcion 1
-                            */
-                            out.writeUTF("se realizo la operacion 1");
-                            break;
-                        case 2:
-                            /**
-                            * se solicita el Id del producto a eliminar
-                            */
-                            out.writeUTF("Ingresa el ID del producto que deseas eliminar");
-                            /**
-                            * el Id es recibido y se usa como parametro de la funcion
-                            */
+                    System.out.println("Cliente conectado desde: " + socket.getInetAddress().getHostAddress());
+
+                    // Recibe la opción del cliente
+                    int opcion = in.readInt();
+
+                    // Procesa la solicitud del cliente
+                    switch (opcion) {
+                        case 1: // Agregar producto
                             int id = in.readInt();
-                            manager.removeProducts(id);
-                            
-                            /**
-                            * mensaje de confirmacion de producto eliminado y operacion realizada
-                            */
-                            out.writeUTF("se elimino el producto con el id "+id);
-                            out.writeUTF("se realizo la operacion 2");
+                            String nombre = in.readUTF();
+                            double precio = in.readDouble();
+                            int cantidad = in.readInt();
+
+                            if (!manager.productExists(id)) {
+                                manager.getProducts().add(new Product(id, nombre, precio, cantidad));
+                                out.writeUTF("Producto agregado correctamente.");
+                            } else {
+                                out.writeUTF("El ID ya existe.");
+                            }
                             break;
-                        case 3:
-                            /**
-                            * mensaje solicitando el nombre del producto a buscar
-                            */
-                            out.writeUTF("Ingresa el nombre del producto que deseas buscar");
-                            /**
-                            * recibe el nombre del producto
-                            */
-                            String name = in.readUTF();
-                            /**
-                            * se crea la variable r para guardar el producto de la funcion
-                            */
-                            String r = manager.searchProduct(name);
-                            /**
-                            * se envia el producto al cliente
-                            */
-                            out.writeUTF(r);
+                        case 2: // Eliminar producto
+                            int idEliminar = in.readInt();
+                            manager.removeProducts(idEliminar);
+                            out.writeUTF("Producto eliminado correctamente.");
                             break;
-                        case 4:
-                            
+                        case 3: // Actualizar producto
+                            int idActualizar = in.readInt();
+                            String nuevoNombre = in.readUTF();
+                            double nuevoPrecio = in.readDouble();
+                            int nuevaCantidad = in.readInt();
+                            manager.updateProduct(idActualizar, new Product(idActualizar, nuevoNombre, nuevoPrecio, nuevaCantidad));
+                            out.writeUTF("Producto actualizado correctamente.");
+                            break;
+                        case 4: // Buscar producto
+                            String nombreBuscar = in.readUTF();
+                            String resultado = manager.searchProduct(nombreBuscar);
+                            out.writeUTF(resultado);
+                            break;
+                        case 5: // Generar reporte
+                            String reporte = manager.generateReport();
+                            out.writeUTF(reporte);
+                            break;
+                       case 6: // Obtener lista de productos
+                            StringBuilder listaProductos = new StringBuilder();
+                            for (Product product : manager.getProducts()) {
+                                listaProductos.append(product.getId()).append(" - ")
+                                              .append(product.getName()).append(" - ")
+                                              .append(product.getPrice()).append(" - ")
+                                              .append(product.getQuantity()).append("\n");
+                            }
+                            out.writeUTF(listaProductos.toString());
+                        break;
                     }
+                } catch (IOException ex) {
+                    Logger.getLogger(InventarioServer.class.getName()).log(Level.SEVERE, null, ex);
                 }
-
-                /**
-                 * se cierra la conexion con el cliente
-                 */
-                sc.close();
-                System.out.println("cliente desconectado...");
             }
-
         } catch (IOException ex) {
             Logger.getLogger(InventarioServer.class.getName()).log(Level.SEVERE, null, ex);
         }
