@@ -24,20 +24,25 @@ public class InventarioManager {
     }
 
     public void addProduct(Product product) {
-        products.add(product);
+        if (!productExists(product.getId())) {
+            products.add(product);
+        } else {
+            throw new IllegalArgumentException("El ID ya existe.");
+        }
     }
 
     public void removeProducts(int id) {
         products.removeIf(product -> product.getId() == id);
     }
 
-    public void updateProduct(int id, Product newProduct) {
+    public boolean updateProduct(int id, Product newProduct) {
         for (int i = 0; i < products.size(); i++) {
             if (products.get(i).getId() == id) {
                 products.set(i, newProduct);
-                break;
+                return true;
             }
         }
+        return false;
     }
 
     public String searchProduct(String name) {
@@ -59,4 +64,3 @@ public class InventarioManager {
         return report.toString();
     }
 }
-

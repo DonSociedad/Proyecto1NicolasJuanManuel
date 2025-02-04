@@ -39,7 +39,7 @@ public class InventarioServer {
                             int cantidad = in.readInt();
 
                             if (!manager.productExists(id)) {
-                                manager.getProducts().add(new Product(id, nombre, precio, cantidad));
+                                manager.addProduct(new Product(id, nombre, precio, cantidad));
                                 out.writeUTF("Producto agregado correctamente.");
                             } else {
                                 out.writeUTF("El ID ya existe.");
@@ -55,8 +55,12 @@ public class InventarioServer {
                             String nuevoNombre = in.readUTF();
                             double nuevoPrecio = in.readDouble();
                             int nuevaCantidad = in.readInt();
-                            manager.updateProduct(idActualizar, new Product(idActualizar, nuevoNombre, nuevoPrecio, nuevaCantidad));
-                            out.writeUTF("Producto actualizado correctamente.");
+                            boolean actualizado = manager.updateProduct(idActualizar, new Product(idActualizar, nuevoNombre, nuevoPrecio, nuevaCantidad));
+                            if (actualizado) {
+                                out.writeUTF("Producto actualizado correctamente.");
+                            } else {
+                                out.writeUTF("Producto no encontrado.");
+                            }
                             break;
                         case 4: // Buscar producto
                             String nombreBuscar = in.readUTF();
@@ -67,7 +71,7 @@ public class InventarioServer {
                             String reporte = manager.generateReport();
                             out.writeUTF(reporte);
                             break;
-                       case 6: // Obtener lista de productos
+                        case 6: // Obtener lista de productos
                             StringBuilder listaProductos = new StringBuilder();
                             for (Product product : manager.getProducts()) {
                                 listaProductos.append(product.getId()).append(" - ")
@@ -76,7 +80,7 @@ public class InventarioServer {
                                               .append(product.getQuantity()).append("\n");
                             }
                             out.writeUTF(listaProductos.toString());
-                        break;
+                            break;
                     }
                 } catch (IOException ex) {
                     Logger.getLogger(InventarioServer.class.getName()).log(Level.SEVERE, null, ex);
