@@ -1,7 +1,6 @@
 package com.mycompany.inventarioclient;
 
 import com.mycompany.views.Interface;
-import com.mycompany.views.VentanaPrincipal;
 import javax.swing.SwingUtilities;
 
 /**
