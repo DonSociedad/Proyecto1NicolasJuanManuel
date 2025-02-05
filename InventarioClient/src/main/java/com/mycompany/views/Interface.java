@@ -6,14 +6,22 @@ package com.mycompany.views;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.Socket;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
 import javax.swing.event.ListSelectionEvent;
@@ -311,12 +319,19 @@ public class Interface extends javax.swing.JFrame {
     }//GEN-LAST:event_ListaProductosMouseClicked
 
     private void enviarSolicitud(int opcion) {
-        try (Socket socket = new Socket("127.0.0.1", 5051);
-             DataInputStream in = new DataInputStream(socket.getInputStream());
-             DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
-            
+    try {
+        SSLContext sslContext = SSLContext.getInstance("TLS"); // Usar TLS explícitamente
+        sslContext.init(null, null, new SecureRandom());
+
+        SSLSocketFactory socketFactory = sslContext.getSocketFactory();
+
+        try (
+            SSLSocket socket = (SSLSocket) socketFactory.createSocket("127.0.0.1", 5051);
+            DataInputStream in = new DataInputStream(socket.getInputStream());
+            DataOutputStream out = new DataOutputStream(socket.getOutputStream())
+        ) {
             out.writeInt(opcion);
-            
+
             switch (opcion) {
                 case 1:
                     out.writeInt(validarEntero(TextField_ID.getText(), "ID"));
@@ -337,16 +352,18 @@ public class Interface extends javax.swing.JFrame {
                     out.writeUTF(TextField_Nombre.getText());
                     break;
             }
-            
+
             String respuesta = in.readUTF();
             JOptionPane.showMessageDialog(this, respuesta, "Respuesta del Servidor", JOptionPane.INFORMATION_MESSAGE);
             actualizarListaProductos();
             limpiarCampos();
-        } catch (IOException | NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
+
+        } 
+    } catch (IOException | NumberFormatException | NoSuchAlgorithmException | KeyManagementException ex) {
+        JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
     }
-    
+}
+
     private int validarEntero(String texto, String campo) throws NumberFormatException {
         try {
             return Integer.parseInt(texto);
@@ -354,7 +371,7 @@ public class Interface extends javax.swing.JFrame {
             throw new NumberFormatException("El campo " + campo + " debe ser un número entero válido.");
         }
     }
-    
+
     private double validarDouble(String texto, String campo) throws NumberFormatException {
         try {
             return Double.parseDouble(texto);
@@ -362,7 +379,7 @@ public class Interface extends javax.swing.JFrame {
             throw new NumberFormatException("El campo " + campo + " debe ser un número decimal válido.");
         }
     }
-    
+
     private void limpiarCampos() {
         TextField_ID.setText("");
         TextField_Nombre.setText("");
@@ -370,64 +387,71 @@ public class Interface extends javax.swing.JFrame {
         TextField_Cantidad.setText("");
         ListaProductos.clearSelection();
     }
-    
+
     private DefaultListModel<String> listModel = new DefaultListModel<>();
 
     private void actualizarListaProductos() {
         listModel.clear();
-        // Lógica para obtener y mostrar los productos de la base de datos o servidor
         List<String> productos = obtenerProductos();
         for (String producto : productos) {
             listModel.addElement(producto);
         }
-        ListaProductos.setModel(listModel); // Actualizar la JList con el nuevo modelo
+        ListaProductos.setModel(listModel);
     }
 
     private List<String> obtenerProductos() {
         List<String> productos = new ArrayList<>();
-        try (Socket socket = new Socket("127.0.0.1", 5051);
-             DataInputStream in = new DataInputStream(socket.getInputStream());
-             DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
 
-            // Enviar solicitud para obtener la lista de productos
-            out.writeInt(6); // Opción 6: Obtener lista de productos
+        try {
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, null, new SecureRandom());
+            SSLSocketFactory socketFactory = sslContext.getSocketFactory();
 
-            // Recibir la respuesta del servidor
-            String respuesta = in.readUTF();
-            String[] productosArray = respuesta.split("\n"); // Dividir la respuesta en líneas
+            try (SSLSocket socket = (SSLSocket) socketFactory.createSocket("127.0.0.1", 5051);
+                 DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
 
-            // Agregar cada producto a la lista
-            for (String producto : productosArray) {
-                productos.add(producto);
+                out.writeInt(6); // Opción 6: Obtener lista de productos
+                out.flush();
+
+                String linea;
+                while ((linea = in.readLine()) != null) {
+                    productos.add(linea);
+                }
             }
-
-        } catch (IOException ex) {
-            ex.printStackTrace();
+        } catch (IOException | NoSuchAlgorithmException | KeyManagementException ex) {
             JOptionPane.showMessageDialog(null, "Error al obtener la lista de productos: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
         return productos;
     }
 
-    
     private void generarReporte() {
-        try (Socket socket = new Socket("127.0.0.1", 5051);
-             DataInputStream in = new DataInputStream(socket.getInputStream());
-             DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
+        try {
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, null, new SecureRandom());
+            SSLSocketFactory socketFactory = sslContext.getSocketFactory();
 
-            out.writeInt(5); // Opción para generar el reporte
+            try (SSLSocket socket = (SSLSocket) socketFactory.createSocket("127.0.0.1", 5051);
+                 DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
 
-            // Recibe la respuesta (reporte)
-            String respuesta = in.readUTF();
+                socket.setSoTimeout(5000);
+                out.writeInt(5);
+                out.flush();
 
-            // Guardar el reporte en un archivo CSV
-            try (FileWriter fileWriter = new FileWriter("reporte.csv");
-                 BufferedWriter bufferedWriter = new BufferedWriter(fileWriter)) {
-                bufferedWriter.write(respuesta);
+                try (FileWriter fileWriter = new FileWriter("reporte.csv");
+                     BufferedWriter bufferedWriter = new BufferedWriter(fileWriter)) {
+
+                    String linea;
+                    while ((linea = in.readLine()) != null) {
+                        bufferedWriter.write(linea);
+                        bufferedWriter.newLine();
+                    }
+                }
+                JOptionPane.showMessageDialog(this, "Reporte generado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+
             }
-
-            JOptionPane.showMessageDialog(this, "Reporte generado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-
-        } catch (IOException e) {
+        } catch (IOException | NoSuchAlgorithmException | KeyManagementException e) {
             JOptionPane.showMessageDialog(this, "Error al generar el reporte: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
