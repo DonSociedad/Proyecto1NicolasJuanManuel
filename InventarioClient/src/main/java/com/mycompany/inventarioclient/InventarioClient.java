@@ -9,21 +9,18 @@ import java.util.Properties;
 import javax.swing.SwingUtilities;
 
 /**
- * Clase principal del cliente que inicia la interfaz gráfica.
- * Esta clase se encarga de cargar la configuración del certificado SSL
- * y de iniciar la interfaz gráfica de usuario (GUI) en el hilo de despacho
- * de eventos de Swing.
- *
- * @author Juan Manuel
+ * Clase principal del cliente que inicia la interfaz gráfica. Carga la
+ * configuración del certificado SSL y lanza la interfaz gráfica de usuario
+ * (GUI).
  */
 public class InventarioClient {
 
     /**
-     * Método principal que inicia la aplicación.
-     * Carga las propiedades del archivo de configuración, configura el certificado SSL
-     * y lanza la interfaz gráfica de usuario.
+     * Método principal que inicia la aplicación. Carga las propiedades del
+     * archivo de configuración, configura el certificado SSL y lanza la
+     * interfaz gráfica de usuario.
      *
-     * @param args Argumentos de la línea de comandos (no se utilizan en esta aplicación).
+     * @param args Argumentos de la línea de comandos (no se utilizan).
      */
     public static void main(String[] args) {
         // Carga las propiedades del archivo de configuración

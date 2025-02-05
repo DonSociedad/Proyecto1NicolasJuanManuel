@@ -13,7 +13,6 @@ import java.io.DataOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.Socket;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -299,7 +298,7 @@ public class Interface extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
+    
     private void ListaProductosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ListaProductosMouseClicked
         if (ListaProductos.getSelectedIndex() != -1) { // Verifica que se haya seleccionado un elemento
         String seleccionado = ListaProductos.getSelectedValue();
@@ -320,16 +319,14 @@ public class Interface extends javax.swing.JFrame {
 
     private void enviarSolicitud(int opcion) {
     try {
-        SSLContext sslContext = SSLContext.getInstance("TLS"); // Usar TLS explícitamente
+        SSLContext sslContext = SSLContext.getInstance("TLS");
         sslContext.init(null, null, new SecureRandom());
-
         SSLSocketFactory socketFactory = sslContext.getSocketFactory();
 
-        try (
-            SSLSocket socket = (SSLSocket) socketFactory.createSocket("127.0.0.1", 5051);
-            DataInputStream in = new DataInputStream(socket.getInputStream());
-            DataOutputStream out = new DataOutputStream(socket.getOutputStream())
-        ) {
+        try (SSLSocket socket = (SSLSocket) socketFactory.createSocket("127.0.0.1", 5051);
+             DataInputStream in = new DataInputStream(socket.getInputStream());
+             DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
+
             out.writeInt(opcion);
 
             switch (opcion) {
@@ -358,10 +355,11 @@ public class Interface extends javax.swing.JFrame {
             actualizarListaProductos();
             limpiarCampos();
 
-        } 
+        }
     } catch (IOException | NumberFormatException | NoSuchAlgorithmException | KeyManagementException ex) {
         JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
     }
+
 }
 
     private int validarEntero(String texto, String campo) throws NumberFormatException {
@@ -403,9 +401,7 @@ public class Interface extends javax.swing.JFrame {
         List<String> productos = new ArrayList<>();
 
         try {
-            SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, null, new SecureRandom());
-            SSLSocketFactory socketFactory = sslContext.getSocketFactory();
+            SSLSocketFactory socketFactory = (SSLSocketFactory)SSLSocketFactory.getDefault();
 
             try (SSLSocket socket = (SSLSocket) socketFactory.createSocket("127.0.0.1", 5051);
                  DataOutputStream out = new DataOutputStream(socket.getOutputStream());
@@ -419,7 +415,7 @@ public class Interface extends javax.swing.JFrame {
                     productos.add(linea);
                 }
             }
-        } catch (IOException | NoSuchAlgorithmException | KeyManagementException ex) {
+        } catch (IOException ex) {
             JOptionPane.showMessageDialog(null, "Error al obtener la lista de productos: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
         return productos;
