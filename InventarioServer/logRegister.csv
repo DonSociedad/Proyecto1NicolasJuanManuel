@@ -3,3 +3,11 @@
 [2025-02-04T18:00:29.754210800] Operación: ADD - IP Employee:127.0.0.1 - ID Product: 1
 [2025-02-05T15:01:34.434059300] Operación: DELETE - IP Employee:127.0.0.1 - ID Product: 1
 [2025-02-05T15:01:45.803093] Operación: ADD - IP Employee:127.0.0.1 - ID Product: 1
+[2025-02-05T16:14:43.813043400] Operación: DELETE - IP Employee:127.0.0.1 - ID Product: 1
+[2025-02-05T16:14:50.364768300] Operación: ADD - IP Employee:127.0.0.1 - ID Product: 4
+[2025-02-06T15:12:45.648374700] Operación: DELETE - IP Employee:127.0.0.1 - ID Product: 1
+[2025-02-06T15:13:40.035341] Operación: ADD - IP Employee:127.0.0.1 - ID Product: 2
+[2025-02-06T15:13:51.021307900] Operación: SEARCH - IP Employee:127.0.0.1 - Name Product: banana
+[2025-02-06T15:35:52.121435] Operación: DELETE - IP Employee:127.0.0.1 - ID Product: 1
+[2025-02-06T15:35:57.356233100] Operación: ADD - IP Employee:127.0.0.1 - ID Product: 4
+[2025-02-06T15:36:00.786414500] Operación: SEARCH - IP Employee:127.0.0.1 - Name Product: Mango

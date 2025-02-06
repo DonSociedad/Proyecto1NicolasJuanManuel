@@ -1,43 +1,42 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
 package com.mycompany.views;
 
+import com.mycompany.inventario.ProductService;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.List;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 /**
- *
- * @author nmedi
+ * Clase que representa la interfaz gráfica de usuario para la gestión de productos.
+ * Esta clase extiende de `javax.swing.JFrame` y permite realizar operaciones CRUD
+ * (Crear, Leer, Actualizar, Eliminar) sobre los productos, así como generar reportes.
+ * 
+ * @author Nicolas y Juan Manuel
  */
 public class Interface extends javax.swing.JFrame {
+    private final ProductService productoService = new ProductService();
+    private DefaultListModel<String> listModel = new DefaultListModel<>();
 
+    /**
+     * Constructor de la clase Interface.
+     * Inicializa los componentes de la interfaz, actualiza la lista de productos
+     * y configura los eventos de los botones y la lista de productos.
+     */
     public Interface() {
         initComponents();
         actualizarListaProductos();
         configurarEventos();
     }
-    
+
+    /**
+     * Configura los eventos de los botones y la lista de productos.
+     * Asocia acciones a los botones de agregar, eliminar, buscar, actualizar, generar reporte y limpiar campos.
+     * También configura la selección de productos en la lista para mostrar los detalles en los campos de texto.
+     */
     private void configurarEventos() {
         BTN_Agregar.addActionListener(new ActionListener() {
             @Override
@@ -70,7 +69,12 @@ public class Interface extends javax.swing.JFrame {
         BTN_Reporte.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                generarReporte();
+                try {
+                    productoService.generarReporte();
+                    JOptionPane.showMessageDialog(Interface.this, "Reporte generado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(Interface.this, "Error al generar el reporte: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
             }
         });
 
@@ -80,27 +84,77 @@ public class Interface extends javax.swing.JFrame {
                 limpiarCampos();
             }
         });
+
         ListaProductos.addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
-                if (!e.getValueIsAdjusting() && ListaProductos.getSelectedValue() != null) { // Evita llamadas innecesarias
+                if (!e.getValueIsAdjusting() && ListaProductos.getSelectedValue() != null) {
                     String seleccionado = ListaProductos.getSelectedValue();
-
-                    // Se asume que el formato del producto es: "ID - Nombre - Precio - Cantidad"
                     String[] datos = seleccionado.split(" - ");
 
                     if (datos.length == 4) {
-                        TextField_ID.setText(datos[0].trim());        // ID
-                        TextField_Nombre.setText(datos[1].trim());    // Nombre
-                        TextField_Precio.setText(datos[2].trim());    // Precio
-                        TextField_Cantidad.setText(datos[3].trim());  // Cantidad
+                        TextField_ID.setText(datos[0].trim());
+                        TextField_Nombre.setText(datos[1].trim());
+                        TextField_Precio.setText(datos[2].trim());
+                        TextField_Cantidad.setText(datos[3].trim());
                     } else {
                         JOptionPane.showMessageDialog(null, "Error al procesar el producto seleccionado.", "Error", JOptionPane.ERROR_MESSAGE);
                     }
                 }
             }
         });
+    }
 
+    /**
+     * Envía una solicitud al servicio de productos para realizar una operación específica.
+     * Las operaciones incluyen agregar, eliminar, buscar y actualizar productos.
+     * 
+     * @param opcion El número que representa la operación a realizar:
+     *              1 para agregar, 2 para eliminar, 3 para actualizar, 4 para buscar.
+     */
+    private void enviarSolicitud(int opcion) {
+        try {
+            String respuesta = productoService.enviarSolicitud(
+                opcion,
+                TextField_ID.getText(),
+                TextField_Nombre.getText(),
+                TextField_Precio.getText(),
+                TextField_Cantidad.getText()
+            );
+            JOptionPane.showMessageDialog(this, respuesta, "Respuesta del Servidor", JOptionPane.INFORMATION_MESSAGE);
+            actualizarListaProductos();
+            limpiarCampos();
+        } catch (IOException | NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    /**
+     * Limpia los campos de texto y deselecciona cualquier elemento seleccionado en la lista de productos.
+     */
+    private void limpiarCampos() {
+        TextField_ID.setText("");
+        TextField_Nombre.setText("");
+        TextField_Precio.setText("");
+        TextField_Cantidad.setText("");
+        ListaProductos.clearSelection();
+    }
+
+    /**
+     * Actualiza la lista de productos mostrada en la interfaz.
+     * Obtiene la lista de productos desde el servicio y la muestra en el componente de lista.
+     */
+    private void actualizarListaProductos() {
+        listModel.clear();
+        try {
+            List<String> productos = productoService.obtenerProductos();
+            for (String producto : productos) {
+                listModel.addElement(producto);
+            }
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "Error al obtener la lista de productos: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        ListaProductos.setModel(listModel);
     }
     
     @SuppressWarnings("unchecked")
@@ -141,11 +195,6 @@ public class Interface extends javax.swing.JFrame {
             String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
             public int getSize() { return strings.length; }
             public String getElementAt(int i) { return strings[i]; }
-        });
-        ListaProductos.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                ListaProductosMouseClicked(evt);
-            }
         });
         jScrollPane1.setViewportView(ListaProductos);
 
@@ -298,161 +347,6 @@ public class Interface extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-    
-    private void ListaProductosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ListaProductosMouseClicked
-        if (ListaProductos.getSelectedIndex() != -1) { // Verifica que se haya seleccionado un elemento
-        String seleccionado = ListaProductos.getSelectedValue();
-        
-        // Se asume que el formato del producto es: "ID - Nombre - Precio - Cantidad"
-        String[] datos = seleccionado.split(" - ");
-
-        if (datos.length == 4) {
-            TextField_ID.setText(datos[0].trim());        // ID
-            TextField_Nombre.setText(datos[1].trim());    // Nombre
-            TextField_Precio.setText(datos[2].trim());    // Precio
-            TextField_Cantidad.setText(datos[3].trim());  // Cantidad
-        } else {
-            JOptionPane.showMessageDialog(this, "Error al procesar el producto seleccionado.", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-    }//GEN-LAST:event_ListaProductosMouseClicked
-
-    private void enviarSolicitud(int opcion) {
-    try {
-        SSLContext sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(null, null, new SecureRandom());
-        SSLSocketFactory socketFactory = sslContext.getSocketFactory();
-
-        try (SSLSocket socket = (SSLSocket) socketFactory.createSocket("127.0.0.1", 5051);
-             DataInputStream in = new DataInputStream(socket.getInputStream());
-             DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
-
-            out.writeInt(opcion);
-
-            switch (opcion) {
-                case 1:
-                    out.writeInt(validarEntero(TextField_ID.getText(), "ID"));
-                    out.writeUTF(TextField_Nombre.getText());
-                    out.writeDouble(validarDouble(TextField_Precio.getText(), "Precio"));
-                    out.writeInt(validarEntero(TextField_Cantidad.getText(), "Cantidad"));
-                    break;
-                case 2:
-                    out.writeInt(validarEntero(TextField_ID.getText(), "ID"));
-                    break;
-                case 3:
-                    out.writeInt(validarEntero(TextField_ID.getText(), "ID"));
-                    out.writeUTF(TextField_Nombre.getText());
-                    out.writeDouble(validarDouble(TextField_Precio.getText(), "Precio"));
-                    out.writeInt(validarEntero(TextField_Cantidad.getText(), "Cantidad"));
-                    break;
-                case 4:
-                    out.writeUTF(TextField_Nombre.getText());
-                    break;
-            }
-
-            String respuesta = in.readUTF();
-            JOptionPane.showMessageDialog(this, respuesta, "Respuesta del Servidor", JOptionPane.INFORMATION_MESSAGE);
-            actualizarListaProductos();
-            limpiarCampos();
-
-        }
-    } catch (IOException | NumberFormatException | NoSuchAlgorithmException | KeyManagementException ex) {
-        JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-    }
-
-}
-
-    private int validarEntero(String texto, String campo) throws NumberFormatException {
-        try {
-            return Integer.parseInt(texto);
-        } catch (NumberFormatException e) {
-            throw new NumberFormatException("El campo " + campo + " debe ser un número entero válido.");
-        }
-    }
-
-    private double validarDouble(String texto, String campo) throws NumberFormatException {
-        try {
-            return Double.parseDouble(texto);
-        } catch (NumberFormatException e) {
-            throw new NumberFormatException("El campo " + campo + " debe ser un número decimal válido.");
-        }
-    }
-
-    private void limpiarCampos() {
-        TextField_ID.setText("");
-        TextField_Nombre.setText("");
-        TextField_Precio.setText("");
-        TextField_Cantidad.setText("");
-        ListaProductos.clearSelection();
-    }
-
-    private DefaultListModel<String> listModel = new DefaultListModel<>();
-
-    private void actualizarListaProductos() {
-        listModel.clear();
-        List<String> productos = obtenerProductos();
-        for (String producto : productos) {
-            listModel.addElement(producto);
-        }
-        ListaProductos.setModel(listModel);
-    }
-
-    private List<String> obtenerProductos() {
-        List<String> productos = new ArrayList<>();
-
-        try {
-            SSLSocketFactory socketFactory = (SSLSocketFactory)SSLSocketFactory.getDefault();
-
-            try (SSLSocket socket = (SSLSocket) socketFactory.createSocket("127.0.0.1", 5051);
-                 DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
-
-                out.writeInt(6); // Opción 6: Obtener lista de productos
-                out.flush();
-
-                String linea;
-                while ((linea = in.readLine()) != null) {
-                    productos.add(linea);
-                }
-            }
-        } catch (IOException ex) {
-            JOptionPane.showMessageDialog(null, "Error al obtener la lista de productos: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
-        return productos;
-    }
-
-    private void generarReporte() {
-        try {
-            SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, null, new SecureRandom());
-            SSLSocketFactory socketFactory = sslContext.getSocketFactory();
-
-            try (SSLSocket socket = (SSLSocket) socketFactory.createSocket("127.0.0.1", 5051);
-                 DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
-
-                socket.setSoTimeout(5000);
-                out.writeInt(5);
-                out.flush();
-
-                try (FileWriter fileWriter = new FileWriter("reporte.csv");
-                     BufferedWriter bufferedWriter = new BufferedWriter(fileWriter)) {
-
-                    String linea;
-                    while ((linea = in.readLine()) != null) {
-                        bufferedWriter.write(linea);
-                        bufferedWriter.newLine();
-                    }
-                }
-                JOptionPane.showMessageDialog(this, "Reporte generado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-
-            }
-        } catch (IOException | NoSuchAlgorithmException | KeyManagementException e) {
-            JOptionPane.showMessageDialog(this, "Error al generar el reporte: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-    
-    
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton BTN_Actualizar;

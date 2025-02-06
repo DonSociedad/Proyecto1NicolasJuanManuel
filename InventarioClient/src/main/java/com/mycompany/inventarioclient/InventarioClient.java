@@ -9,9 +9,15 @@ import java.util.Properties;
 import javax.swing.SwingUtilities;
 
 /**
- * Clase principal del cliente que inicia la interfaz gráfica. Carga la
- * configuración del certificado SSL y lanza la interfaz gráfica de usuario
- * (GUI).
+ * Clase principal del cliente que inicia la interfaz gráfica y configura la
+ * comunicación segura mediante SSL/TLS. Carga la configuración del certificado
+ * SSL desde un archivo de propiedades y lanza la interfaz gráfica de usuario (GUI).
+ *
+ * <p>Esta clase es el punto de entrada de la aplicación del cliente de inventario.</p>
+ *
+ * @author Nicolas y Juan Manuel
+ * @version 1.0
+ * @since 2023-10-01
  */
 public class InventarioClient {
 
@@ -19,6 +25,12 @@ public class InventarioClient {
      * Método principal que inicia la aplicación. Carga las propiedades del
      * archivo de configuración, configura el certificado SSL y lanza la
      * interfaz gráfica de usuario.
+     *
+     * <p>El archivo de configuración debe contener las siguientes propiedades:</p>
+     * <ul>
+     *   <li>{@code SSL_CERTIFICATE_ROUTE}: Ruta al archivo del certificado SSL.</li>
+     *   <li>{@code SSL_PASSWORD}: Contraseña del certificado SSL.</li>
+     * </ul>
      *
      * @param args Argumentos de la línea de comandos (no se utilizan).
      */
