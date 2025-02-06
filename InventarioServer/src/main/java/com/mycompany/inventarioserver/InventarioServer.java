@@ -44,18 +44,32 @@ public class InventarioServer {
 
         // Inicia el servidor SSL.
         InventarioManager manager = new InventarioManager();
+        //puerto en el que se hara la conexión
         int puerto = 5051;
 
         try {
+
+            // Obtiene la fábrica de sockets SSL predeterminada
             SSLServerSocketFactory socketFactory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
+
+            // Crea un servidor SSL en el puerto especificado
             SSLServerSocket servidor = (SSLServerSocket) socketFactory.createServerSocket(puerto);
+
+            // Habilita el protocolo TLS v1.2 para mayor seguridad
             servidor.setEnabledProtocols(new String[]{"TLSv1.2"});
+
+            // Mensaje de confirmación de inicio del servidor
             System.out.println("Servidor SSL iniciado en el puerto " + puerto);
 
             // Bucle principal para aceptar conexiones de clientes.
             while (true) {
+                // Espera conexiones de clientes
                 System.out.println("Esperando conexión segura de cliente...");
+
+                // Acepta la conexión de un cliente
                 SSLSocket socket = (SSLSocket) servidor.accept();
+
+                // Crea un nuevo hilo para manejar la conexión del cliente
                 ThreadsManager tManager = new ThreadsManager(socket, manager);
                 tManager.start();
             }
